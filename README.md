@@ -75,7 +75,7 @@ Run the training process with:
 ```bash
 mlagents-learn config.yaml --run-id=MazeAgentTraining
 ```
-**NOTE:**MazeAgentTraining is unique identificator
+NOTE: MazeAgentTraining is unique identificator
 
 ### 4. Using the Trained Model
 
