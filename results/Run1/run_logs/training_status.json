@@ -1,4 +1,26 @@
 {
+    "MazeAgent": {
+        "checkpoints": [
+            {
+                "steps": 27729,
+                "file_path": "results\\run1\\MazeAgent\\MazeAgent-27729.onnx",
+                "reward": -268.80035066604614,
+                "creation_time": 1740998136.0610762,
+                "auxillary_file_paths": [
+                    "results\\run1\\MazeAgent\\MazeAgent-27729.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 27729,
+            "file_path": "results\\run1\\MazeAgent.onnx",
+            "reward": -268.80035066604614,
+            "creation_time": 1740998136.0610762,
+            "auxillary_file_paths": [
+                "results\\run1\\MazeAgent\\MazeAgent-27729.pt"
+            ]
+        }
+    },
     "metadata": {
         "stats_format_version": "0.3.0",
         "mlagents_version": "1.1.0",

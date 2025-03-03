@@ -16,7 +16,7 @@ behaviors:
       epsilon_schedule: linear
     checkpoint_interval: 500000
     network_settings:
-      normalize: true
+      normalize: false
       hidden_units: 128
       num_layers: 2
       vis_encode_type: simple
@@ -38,7 +38,7 @@ behaviors:
     init_path: null
     keep_checkpoints: 5
     even_checkpoints: false
-    max_steps: 500000
+    max_steps: 10000
     time_horizon: 64
     summary_freq: 50000
     threaded: false
@@ -66,7 +66,7 @@ engine_settings:
   no_graphics_monitor: false
 environment_parameters: null
 checkpoint_settings:
-  run_id: Run2
+  run_id: run2
   initialize_from: null
   load_model: false
   resume: false

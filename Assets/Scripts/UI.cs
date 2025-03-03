@@ -3,21 +3,29 @@ using Zenject;
 
 public class UI : MonoBehaviour
 {
-    private const string CUBE = "Cube";
+    public const string CUBE = "Cube";
 
     [Inject] private readonly HintRenderer _hintRenderer;
     [Inject] private readonly MazeSpawner _mazeSpawner;
     [Inject] private readonly AgentBackHomeAlgorithm _mazeAgentBackHome;
     [Inject] private readonly AgentAStarAlgorithm _mazeAgentAStar;
+    [Inject] private readonly MazeAgent _mazeAgent;
 
     public void ActivateAgentBackHome()
     {
+        _mazeAgent.CircleColliderDisable = false;
         _mazeAgentBackHome.ActivateAgent();
     }
 
     public void ActivateAgentAStar()
     {
+        _mazeAgent.CircleColliderDisable = false;
         _mazeAgentAStar.ActivateAgent();
+    }
+
+    public void ActivateAgent()
+    {
+        _mazeAgent.enabled = true;
     }
 
     public void RegenerateMaze()
