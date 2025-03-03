@@ -23,7 +23,7 @@ Open a terminal or command prompt and run:
 pip install mlagents
 ```
 
-### 2. Install ML-Agents in Unity (If is not installed. Check: **Window → Package Manager → In project** 
+### 2. Install ML-Agents in Unity (If is not installed. Check: **Window → Package Manager → In project**)
 
 1. Open Unity and go to **Window → Package Manager**.
 2. Click on **Add package from git URL** and enter:
