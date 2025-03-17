@@ -420,6 +420,7 @@ GameObject:
   - component: {fileID: 436242423}
   - component: {fileID: 436242422}
   - component: {fileID: 436242421}
+  - component: {fileID: 436242424}
   m_Layer: 0
   m_Name: Hint
   m_TagString: Untagged
@@ -440,6 +441,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _componentLineRenderer: {fileID: 436242422}
+  _componentEdgeCollider: {fileID: 436242424}
 --- !u!120 &436242422
 LineRenderer:
   serializedVersion: 2
@@ -560,6 +562,49 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!68 &436242424
+EdgeCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 436242420}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_EdgeRadius: 0
+  m_Points:
+  - {x: -0.5, y: 0}
+  - {x: 0.5, y: 0}
+  m_AdjacentStartPoint: {x: 0, y: 0}
+  m_AdjacentEndPoint: {x: 0, y: 0}
+  m_UseAdjacentStartPoint: 0
+  m_UseAdjacentEndPoint: 0
 --- !u!1 &479517604
 GameObject:
   m_ObjectHideFlags: 0
@@ -697,8 +742,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 9
+  far clip plane: 105
   field of view: 60
   orthographic: 1
   orthographic size: 9
@@ -1593,7 +1638,7 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 1000
+  MaxStep: 20000
 --- !u!114 &1601712551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1607,8 +1652,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 8
-    NumStackedVectorObservations: 1
+    VectorObservationSize: 4
+    NumStackedVectorObservations: 15
     m_ActionSpec:
       m_NumContinuousActions: 0
       BranchSizes: 04000000

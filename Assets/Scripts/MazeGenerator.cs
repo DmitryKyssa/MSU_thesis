@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class MazeGenerator
 {
-    public int Width = 50; 
-    public int Height = 50; 
+    public int Width = 0; 
+    public int Height = 0; 
 
     public Maze GenerateMaze() 
     {
@@ -56,10 +56,10 @@ public class MazeGenerator
             }
         }
 
-        Maze maze = new Maze 
+        Maze maze = new Maze
         {
             cells = cells,
-            finishPosition = PlaceMazeExit(cells) 
+            finishPosition = PlaceMazeExit(cells)
         };
         return maze; 
     }

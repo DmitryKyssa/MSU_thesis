@@ -7,10 +7,13 @@ public class HintRenderer : MonoBehaviour
     [Inject] private readonly MazeSpawner _mazeSpawner;
     public bool PathIsDrawn { get; set; } = false;
     [SerializeField] private LineRenderer _componentLineRenderer;
+    [SerializeField] private EdgeCollider2D _componentEdgeCollider;
+    public EdgeCollider2D ComponentEdgeCollider => _componentEdgeCollider;
 
     public void ResetLineRendererPositions()
     {
         _componentLineRenderer.positionCount = 0;
+        _componentEdgeCollider.points = new Vector2[0];
     }
 
     public void DrawPath() 
@@ -62,6 +65,13 @@ public class HintRenderer : MonoBehaviour
         positions.Add(Vector3.zero);
         _componentLineRenderer.positionCount = positions.Count;
         _componentLineRenderer.SetPositions(positions.ToArray());
+
+        Vector2[] colliderPoints = new Vector2[positions.Count];
+        for (int i = 0; i < positions.Count; i++)
+        {
+            colliderPoints[i] = new Vector2(positions[i].x, positions[i].y);
+        }
+        _componentEdgeCollider.points = colliderPoints;
 
         PathIsDrawn = true; 
     }
