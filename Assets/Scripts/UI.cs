@@ -13,13 +13,13 @@ public class UI : MonoBehaviour
 
     public void ActivateAgentBackHome()
     {
-        _mazeAgent.CircleColliderDisable = false;
+        _mazeAgent.SetCircleColliderEnableStatus(false);
         _mazeAgentBackHome.ActivateAgent();
     }
 
     public void ActivateAgentAStar()
     {
-        _mazeAgent.CircleColliderDisable = false;
+        _mazeAgent.SetCircleColliderEnableStatus(false);
         _mazeAgentAStar.ActivateAgent();
     }
 

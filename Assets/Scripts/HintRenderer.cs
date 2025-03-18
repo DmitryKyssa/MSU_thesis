@@ -8,6 +8,7 @@ public class HintRenderer : MonoBehaviour
     public bool PathIsDrawn { get; set; } = false;
     [SerializeField] private LineRenderer _componentLineRenderer;
     [SerializeField] private EdgeCollider2D _componentEdgeCollider;
+
     public EdgeCollider2D ComponentEdgeCollider => _componentEdgeCollider;
 
     public void ResetLineRendererPositions()
@@ -22,13 +23,6 @@ public class HintRenderer : MonoBehaviour
         int x = maze.finishPosition.x; 
         int y = maze.finishPosition.y; 
         List<Vector3> positions = new List<Vector3>();
-
-        GameObject finish = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        finish.transform.localScale = _mazeSpawner.CellSize * 0.5f; 
-        finish.transform.position = new Vector3(
-            x * _mazeSpawner.CellSize.x, 
-            y * _mazeSpawner.CellSize.y, 
-            y * _mazeSpawner.CellSize.z) + _mazeSpawner.CellSize / 2; 
 
         while ((x != 0 || y != 0) && positions.Count < 1000)
         {

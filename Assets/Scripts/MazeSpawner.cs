@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using UnityEngine;
+﻿using UnityEngine;
 using Zenject;
 
 public class MazeSpawner : MonoBehaviour
@@ -11,6 +10,11 @@ public class MazeSpawner : MonoBehaviour
     [SerializeField] private int _height = 10;
     [Inject] private readonly MazeGenerator _generator;
 
+    public int Left => 0;
+    public int Right => _width - 1;
+    public int Top => _height - 1;
+    public int Bottom => 0;
+
     private void Start()
     {
         GenerateMaze();
@@ -18,8 +22,6 @@ public class MazeSpawner : MonoBehaviour
 
     public void GenerateMaze()
     {
-        Stopwatch sw = new Stopwatch();
-        sw.Start();
         _generator.Height = _height;
         _generator.Width = _width;
         maze = _generator.GenerateMaze();
@@ -35,7 +37,5 @@ public class MazeSpawner : MonoBehaviour
                 cell.WallBottom.SetActive(maze.cells[x, y].WallBottom);
             }
         }
-        sw.Stop();
-        UnityEngine.Debug.Log(sw.ElapsedMilliseconds);
     }
 }

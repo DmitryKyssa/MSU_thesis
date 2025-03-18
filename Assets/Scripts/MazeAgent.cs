@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
@@ -12,15 +13,19 @@ public class MazeAgent : Agent
     [Inject] private readonly HintRenderer _hintRenderer;
     private Rigidbody2D _rigidbody;
     private CircleCollider2D _circleCollider;
-    private readonly Vector2[] _intermediateRewards = new Vector2[10];
-    private int _nextRewardIndex;
-    private Vector2 offset = new Vector2(0.5f, 0.5f);
+    private readonly Vector2 offset = new Vector2(0.5f, 0.5f);
     private List<Vector2> _colliderPoints = new List<Vector2>();
     private int _lastCheckpointIndex = 0;
+    private readonly List<Vector2> _visitedPositions = new List<Vector2>();
+    private readonly Dictionary<Vector2, int> _positionVisitCount = new Dictionary<Vector2, int>();
+    [SerializeField] private int _maxHistorySize = 100;
+    [SerializeField] private int _maxVisitPenalty = 5;
+    [SerializeField] private int _speed = 1;
 
-    public bool CircleColliderDisable
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetCircleColliderEnableStatus(bool status)
     {
-        set => _circleCollider.enabled = value;
+        _circleCollider.enabled = status;
     }
 
     protected override void Awake()
@@ -42,28 +47,57 @@ public class MazeAgent : Agent
     public override void OnActionReceived(ActionBuffers actions)
     {
         int moveAction = actions.DiscreteActions[0];
-
         Vector3 move = Vector3.zero;
+
         switch (moveAction)
         {
-            case 0:
-                move = Vector3.up;
+            case 0: 
+                move = Vector3.up; 
                 break;
-            case 1:
-                move = Vector3.down;
+            case 1: 
+                move = Vector3.down; 
                 break;
-            case 2:
-                move = Vector3.left;
+            case 2: 
+                move = Vector3.left; 
                 break;
-            case 3:
-                move = Vector3.right;
+            case 3: 
+                move = Vector3.right; 
                 break;
         }
 
-        _rigidbody.MovePosition(_rigidbody.position + (Vector2)move);
+        Vector2 newPosition = _rigidbody.position + (Vector2)move * _speed;
+        _rigidbody.MovePosition(new Vector2(
+            Mathf.Clamp(newPosition.x, _spawner.Left, _spawner.Right),
+            Mathf.Clamp(newPosition.y, _spawner.Bottom, _spawner.Top)
+        ));
+
+        if (_visitedPositions.Count >= _maxHistorySize)
+        {
+            _visitedPositions.RemoveAt(0);
+        }
+        _visitedPositions.Add(transform.position);
+
+        if (_visitedPositions.Count(pos => pos == (Vector2)transform.position) > 1)
+        {
+            AddReward(-0.1f); 
+        }
+
+        Vector2 currentPosition = new Vector2(transform.position.x, transform.position.y);
+        if (_positionVisitCount.ContainsKey(currentPosition))
+        {
+            _positionVisitCount[currentPosition]++;
+        }
+        else
+        {
+            _positionVisitCount[currentPosition] = 1;
+        }
+
+        if (_positionVisitCount[currentPosition] > _maxVisitPenalty)
+        {
+            AddReward(-0.2f); 
+        }
 
         int currentIndex = GetDistanceFromPath();
-
         if (currentIndex > _lastCheckpointIndex)
         {
             AddReward(0.1f);
@@ -74,64 +108,15 @@ public class MazeAgent : Agent
             AddReward(-0.2f);
         }
 
-        float distanceToPath = GetDistanceToNearestPathPoint();
-        if (distanceToPath > 0.5f)
+        float distanceToExit = Vector2.Distance(transform.position, _spawner.maze.finishPosition + offset);
+        if (distanceToExit < 0.5f)
         {
-            AddReward(-0.05f);
-        }
-
-        if (distanceToPath > 1.0f)
-        {
-            AddReward(-0.5f);
-        }
-
-        if (distanceToPath < 0.2f)
-        {
-            AddReward(0.2f);
-        }
-
-        if (_nextRewardIndex >= 0)
-        {
-            float distanceToNextReward = Vector2.Distance(transform.position, _intermediateRewards[_nextRewardIndex]);
-
-            if (distanceToNextReward < 0.2f)
-            {
-                AddReward(100f);
-                _nextRewardIndex--;
-                Debug.Log($"Reached checkpoint {_nextRewardIndex}, reward given!");
-            }
-        }
-
-        if (currentIndex == 0)
-        {
-            AddReward(1000f);
-            Debug.Log("<color=green>Agent has found exit!</color>");
+            SetReward(1.0f);
+            Debug.Log("Reached the exit!");
             EndEpisode();
         }
 
-        if (Physics2D.OverlapCircle(transform.position, 0.2f))
-        {
-            AddReward(-1f);
-        }
-    }
-
-    private float GetDistanceToNearestPathPoint()
-    {
-        Vector2 agentPosition = new Vector2(transform.position.x, transform.position.y);
-        float minDistance = float.MaxValue;
-
-        Vector2 tmp = Vector2.zero;
-        foreach (var point in _colliderPoints)
-        {
-            float distance = Vector2.Distance(agentPosition, point);
-            if (distance < minDistance)
-            {
-                tmp = point;
-                minDistance = distance;
-            }
-        }
-
-        return minDistance;
+        AddReward(-0.001f);
     }
 
     private int GetDistanceFromPath()
@@ -156,6 +141,9 @@ public class MazeAgent : Agent
 
     public override void OnEpisodeBegin()
     {
+        _visitedPositions.Clear();
+        _positionVisitCount.Clear();
+
         _hintRenderer.PathIsDrawn = false;
         _hintRenderer.ResetLineRendererPositions();
         Destroy(GameObject.Find(UI.CUBE));
@@ -171,18 +159,6 @@ public class MazeAgent : Agent
         if (_hintRenderer.ComponentEdgeCollider != null)
         {
             _colliderPoints = _hintRenderer.ComponentEdgeCollider.points.ToList();
-            int stepSize = Mathf.Max(1, _colliderPoints.Count / _intermediateRewards.Length);
-
-            for (int i = 0; i < _intermediateRewards.Length; i++)
-            {
-                int index = Mathf.Min(i * stepSize, _colliderPoints.Count - 1);
-                _intermediateRewards[i] = new Vector2()
-                {
-                    x = _colliderPoints[index].x + offset.x,
-                    y = _colliderPoints[index].y + offset.y
-                };
-            }
-            _nextRewardIndex = _intermediateRewards.Length - 1;
         }
         _lastCheckpointIndex = _colliderPoints.Count;
     }
