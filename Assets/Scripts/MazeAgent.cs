@@ -46,30 +46,10 @@ public class MazeAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        int moveAction = actions.DiscreteActions[0];
-        Vector3 move = Vector3.zero;
+        float moveX = actions.ContinuousActions[0];
+        float moveY = actions.ContinuousActions[1];
 
-        switch (moveAction)
-        {
-            case 0: 
-                move = Vector3.up; 
-                break;
-            case 1: 
-                move = Vector3.down; 
-                break;
-            case 2: 
-                move = Vector3.left; 
-                break;
-            case 3: 
-                move = Vector3.right; 
-                break;
-        }
-
-        Vector2 newPosition = _rigidbody.position + (Vector2)move * _speed;
-        _rigidbody.MovePosition(new Vector2(
-            Mathf.Clamp(newPosition.x, _spawner.Left, _spawner.Right),
-            Mathf.Clamp(newPosition.y, _spawner.Bottom, _spawner.Top)
-        ));
+        _rigidbody.MovePosition(_rigidbody.position + new Vector2(moveX, moveY) * Time.fixedDeltaTime * _speed);
 
         if (_visitedPositions.Count >= _maxHistorySize)
         {
@@ -102,6 +82,7 @@ public class MazeAgent : Agent
         {
             AddReward(0.1f);
             _lastCheckpointIndex = currentIndex;
+            Debug.Log("Checkpoint reached!");
         }
         else if (currentIndex < _lastCheckpointIndex)
         {
@@ -137,6 +118,35 @@ public class MazeAgent : Agent
         }
 
         return closestPointIndex;
+    }
+
+    public override void Heuristic(in ActionBuffers actionsOut)
+    {
+        ActionSegment<float> continuousActions = actionsOut.ContinuousActions;
+
+        float moveX = 0f;
+        float moveY = 0f;
+
+        if (Input.GetKey(KeyCode.W))
+        {
+            moveY = 1f; 
+        }
+        else if (Input.GetKey(KeyCode.S))
+        {
+            moveY = -1f; 
+        }
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            moveX = -1f; 
+        }
+        else if (Input.GetKey(KeyCode.D))
+        {
+            moveX = 1f; 
+        }
+
+        continuousActions[0] = moveX;
+        continuousActions[1] = moveY;
     }
 
     public override void OnEpisodeBegin()

@@ -1457,6 +1457,7 @@ GameObject:
   - component: {fileID: 1601712551}
   - component: {fileID: 1601712550}
   - component: {fileID: 1601712552}
+  - component: {fileID: 1601712553}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1638,10 +1639,10 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 5000
+  MaxStep: 50000
   _maxHistorySize: 10
   _maxVisitPenalty: 3
-  _speed: 1
+  _speed: 20
 --- !u!114 &1601712551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1656,13 +1657,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_BrainParameters:
     VectorObservationSize: 4
-    NumStackedVectorObservations: 15
+    NumStackedVectorObservations: 50
     m_ActionSpec:
-      m_NumContinuousActions: 0
-      BranchSizes: 04000000
-    VectorActionSize: 04000000
+      m_NumContinuousActions: 2
+      BranchSizes: 
+    VectorActionSize: 02000000
     VectorActionDescriptions: []
-    VectorActionSpaceType: 0
+    VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 0}
   m_InferenceDevice: 2
@@ -1688,6 +1689,22 @@ MonoBehaviour:
   DecisionPeriod: 5
   DecisionStep: 0
   TakeActionsBetweenDecisions: 1
+--- !u!114 &1601712553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1601712542}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2902496c0120472b90269f94a0aec7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Record: 1
+  NumStepsToRecord: 10000
+  DemonstrationName: 
+  DemonstrationDirectory: 
 --- !u!1 &1610373254
 GameObject:
   m_ObjectHideFlags: 0
@@ -2142,8 +2159,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CellSize: {x: 1, y: 1, z: 0}
-  _width: 8
-  _height: 8
+  _width: 25
+  _height: 15
 --- !u!4 &2094133618
 Transform:
   m_ObjectHideFlags: 0
