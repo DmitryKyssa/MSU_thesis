@@ -17,10 +17,13 @@ public class MazeAgent : Agent
     private List<Vector2> _colliderPoints = new List<Vector2>();
     private int _lastCheckpointIndex = 0;
     private readonly List<Vector2> _visitedPositions = new List<Vector2>();
+    private readonly List<int> _visitedHintEdges = new List<int>();
     private readonly Dictionary<Vector2, int> _positionVisitCount = new Dictionary<Vector2, int>();
     [SerializeField] private int _maxHistorySize = 100;
     [SerializeField] private int _maxVisitPenalty = 5;
     [SerializeField] private int _speed = 1;
+    private int _episodes = 0;
+    private int _successfulEpisodes = 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetCircleColliderEnableStatus(bool status)
@@ -49,7 +52,7 @@ public class MazeAgent : Agent
         float moveX = actions.ContinuousActions[0];
         float moveY = actions.ContinuousActions[1];
 
-        _rigidbody.MovePosition(_rigidbody.position + new Vector2(moveX, moveY) * Time.fixedDeltaTime * _speed);
+        _rigidbody.MovePosition(_rigidbody.position + _speed * Time.fixedDeltaTime * new Vector2(moveX, moveY));
 
         if (_visitedPositions.Count >= _maxHistorySize)
         {
@@ -59,7 +62,7 @@ public class MazeAgent : Agent
 
         if (_visitedPositions.Count(pos => pos == (Vector2)transform.position) > 1)
         {
-            AddReward(-0.1f); 
+            AddReward(-0.1f);
         }
 
         Vector2 currentPosition = new Vector2(transform.position.x, transform.position.y);
@@ -74,30 +77,59 @@ public class MazeAgent : Agent
 
         if (_positionVisitCount[currentPosition] > _maxVisitPenalty)
         {
-            AddReward(-0.2f); 
+            AddReward(-0.001f);
         }
 
         int currentIndex = GetDistanceFromPath();
-        if (currentIndex > _lastCheckpointIndex)
+        //Debug.Log(currentIndex + " " + _lastCheckpointIndex);
+        if (currentIndex < _lastCheckpointIndex)
         {
-            AddReward(0.1f);
-            _lastCheckpointIndex = currentIndex;
+            AddReward(1f);
+            _lastCheckpointIndex -= 10;
             Debug.Log("Checkpoint reached!");
         }
-        else if (currentIndex < _lastCheckpointIndex)
+        //else if (currentIndex > _lastCheckpointIndex)
+        //{
+        //    AddReward(-0.2f);
+        //}
+
+        if (_visitedHintEdges.Contains(currentIndex))
         {
-            AddReward(-0.2f);
+            AddReward(-0.1f);
         }
+        else
+        {
+            _visitedHintEdges.Add(currentIndex);
+            AddReward(1f);
+        }
+
+        //if (currentIndex < 100)
+        //{
+        //    AddReward(0.1f);
+        //} else if (currentIndex < 50)
+        //{
+        //    AddReward(0.5f);
+        //} else if (currentIndex > 150)
+        //{
+        //    AddReward(-0.3f);
+        //}
 
         float distanceToExit = Vector2.Distance(transform.position, _spawner.maze.finishPosition + offset);
         if (distanceToExit < 0.5f)
         {
             SetReward(1.0f);
-            Debug.Log("Reached the exit!");
+            _successfulEpisodes++;
+            Debug.Log($"Reached the exit! {_successfulEpisodes}/{_episodes}");
             EndEpisode();
         }
 
-        AddReward(-0.001f);
+        if (Vector2.Distance(transform.position, new Vector3(0.5f, 0.5f, 0f)) < 1f)
+        {
+            AddReward(-5f);
+            Debug.Log("NOOOOOOOO!");
+        }
+
+        //AddReward(-0.001f);
     }
 
     private int GetDistanceFromPath()
@@ -107,7 +139,8 @@ public class MazeAgent : Agent
         float minDistance = _colliderPoints.Count;
         int closestPointIndex = -1;
 
-        for (int i = 0; i < _colliderPoints.Count; i++)
+        int minIndex = Mathf.Clamp(_lastCheckpointIndex - 10, 0, _lastCheckpointIndex);
+        for (int i = minIndex; i < _colliderPoints.Count; i++)
         {
             float distance = Vector2.Distance(agentPosition, _colliderPoints[i]);
             if (distance < minDistance)
@@ -129,20 +162,20 @@ public class MazeAgent : Agent
 
         if (Input.GetKey(KeyCode.W))
         {
-            moveY = 1f; 
+            moveY = 0.5f;
         }
         else if (Input.GetKey(KeyCode.S))
         {
-            moveY = -1f; 
+            moveY = -0.5f;
         }
 
         if (Input.GetKey(KeyCode.A))
         {
-            moveX = -1f; 
+            moveX = -0.5f;
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            moveX = 1f; 
+            moveX = 0.5f;
         }
 
         continuousActions[0] = moveX;
@@ -151,12 +184,13 @@ public class MazeAgent : Agent
 
     public override void OnEpisodeBegin()
     {
+        _episodes++;
+
         _visitedPositions.Clear();
         _positionVisitCount.Clear();
 
         _hintRenderer.PathIsDrawn = false;
         _hintRenderer.ResetLineRendererPositions();
-        Destroy(GameObject.Find(UI.CUBE));
         foreach (Transform child in _spawner.transform)
         {
             Destroy(child.gameObject);
@@ -170,6 +204,6 @@ public class MazeAgent : Agent
         {
             _colliderPoints = _hintRenderer.ComponentEdgeCollider.points.ToList();
         }
-        _lastCheckpointIndex = _colliderPoints.Count;
+        _lastCheckpointIndex = _colliderPoints.Count - 10;
     }
 }

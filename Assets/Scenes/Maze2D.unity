@@ -1639,10 +1639,10 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 50000
-  _maxHistorySize: 10
-  _maxVisitPenalty: 3
-  _speed: 20
+  MaxStep: 100000
+  _maxHistorySize: 1000
+  _maxVisitPenalty: 10
+  _speed: 10
 --- !u!114 &1601712551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2159,7 +2159,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CellSize: {x: 1, y: 1, z: 0}
-  _width: 25
+  _width: 15
   _height: 15
 --- !u!4 &2094133618
 Transform:
