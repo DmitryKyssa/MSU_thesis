@@ -3,8 +3,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
+using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Zenject;
 
 public class MazeAgent : Agent
@@ -24,6 +26,8 @@ public class MazeAgent : Agent
     [SerializeField] private int _speed = 1;
     private int _episodes = 0;
     private int _successfulEpisodes = 0;
+    private InputAction _action;
+    private BehaviorParameters _parameters;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetCircleColliderEnableStatus(bool status)
@@ -36,7 +40,27 @@ public class MazeAgent : Agent
         base.Awake();
         _rigidbody = GetComponent<Rigidbody2D>();
         _circleCollider = GetComponent<CircleCollider2D>();
+        _parameters = GetComponent<BehaviorParameters>();
         _circleCollider.enabled = true;
+    }
+
+    protected override void OnEnable()
+    {
+        _action = new InputAction("ChangeBehaviorType", InputActionType.Button, "<Keyboard>/space");
+        _action.performed += _ => ChangeBehaviourType();
+        _action.Enable();   
+        base.OnEnable();
+    }
+
+    private void ChangeBehaviourType()
+    {
+        _parameters.BehaviorType = _parameters.BehaviorType == BehaviorType.Default 
+            ? BehaviorType.HeuristicOnly : BehaviorType.Default;
+    }
+    protected override void OnDisable()
+    {
+        _action.Disable();
+        base.OnDisable();
     }
 
     public override void CollectObservations(VectorSensor sensor)
