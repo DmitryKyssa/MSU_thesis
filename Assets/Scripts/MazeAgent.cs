@@ -81,17 +81,12 @@ public class MazeAgent : Agent
         }
 
         int currentIndex = GetDistanceFromPath();
-        //Debug.Log(currentIndex + " " + _lastCheckpointIndex);
         if (currentIndex < _lastCheckpointIndex)
         {
-            AddReward(1f);
+            AddReward(0.5f);
             _lastCheckpointIndex -= 10;
             Debug.Log("Checkpoint reached!");
         }
-        //else if (currentIndex > _lastCheckpointIndex)
-        //{
-        //    AddReward(-0.2f);
-        //}
 
         if (_visitedHintEdges.Contains(currentIndex))
         {
@@ -102,17 +97,6 @@ public class MazeAgent : Agent
             _visitedHintEdges.Add(currentIndex);
             AddReward(1f);
         }
-
-        //if (currentIndex < 100)
-        //{
-        //    AddReward(0.1f);
-        //} else if (currentIndex < 50)
-        //{
-        //    AddReward(0.5f);
-        //} else if (currentIndex > 150)
-        //{
-        //    AddReward(-0.3f);
-        //}
 
         float distanceToExit = Vector2.Distance(transform.position, _spawner.maze.finishPosition + offset);
         if (distanceToExit < 0.5f)
@@ -128,8 +112,6 @@ public class MazeAgent : Agent
             AddReward(-5f);
             Debug.Log("NOOOOOOOO!");
         }
-
-        //AddReward(-0.001f);
     }
 
     private int GetDistanceFromPath()

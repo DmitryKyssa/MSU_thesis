@@ -20,10 +20,6 @@ behaviors:
       extrinsic:
         gamma: 0.95
         strength: 1.0
-    behavioral_cloning:
-      strength: 0.5       
-      demo_path: Assets/Demonstrations/MazeAgent.demo
-      steps: 11248
     max_steps: 10000000
     time_horizon: 128
     summary_freq: 10000
