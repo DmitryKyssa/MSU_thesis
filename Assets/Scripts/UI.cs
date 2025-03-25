@@ -3,8 +3,6 @@ using Zenject;
 
 public class UI : MonoBehaviour
 {
-    public const string CUBE = "Cube";
-
     [Inject] private readonly HintRenderer _hintRenderer;
     [Inject] private readonly MazeSpawner _mazeSpawner;
     [Inject] private readonly AgentBackHomeAlgorithm _mazeAgentBackHome;
@@ -14,17 +12,20 @@ public class UI : MonoBehaviour
     public void ActivateAgentBackHome()
     {
         _mazeAgent.SetCircleColliderEnableStatus(false);
+        _hintRenderer.ComponentEdgeCollider.enabled = false;
         _mazeAgentBackHome.ActivateAgent();
     }
 
     public void ActivateAgentAStar()
     {
         _mazeAgent.SetCircleColliderEnableStatus(false);
+        _hintRenderer.ComponentEdgeCollider.enabled = false;
         _mazeAgentAStar.ActivateAgent();
     }
 
     public void ActivateAgent()
     {
+        _hintRenderer.ComponentEdgeCollider.enabled = true;
         _mazeAgent.enabled = true;
     }
 
@@ -33,7 +34,6 @@ public class UI : MonoBehaviour
         _mazeAgentBackHome.ResetPosition();
         _hintRenderer.PathIsDrawn = false;
         _hintRenderer.ResetLineRendererPositions();
-        Destroy(GameObject.Find(CUBE)); 
         foreach (Transform child in _mazeSpawner.transform) 
         {
             Destroy(child.gameObject);
@@ -51,7 +51,6 @@ public class UI : MonoBehaviour
         {
             _hintRenderer.PathIsDrawn = false;
             _hintRenderer.ResetLineRendererPositions();
-            Destroy(GameObject.Find(CUBE));
         }
     }
 }

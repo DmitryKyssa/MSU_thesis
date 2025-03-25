@@ -46,9 +46,11 @@ public class MazeAgent : Agent
 
     protected override void OnEnable()
     {
-        _action = new InputAction("ChangeBehaviorType", InputActionType.Button, "<Keyboard>/space");
+        _action = new InputAction(nameof(ChangeBehaviourType), InputActionType.Button, "<Keyboard>/space");
         _action.performed += _ => ChangeBehaviourType();
-        _action.Enable();   
+        _action.Enable(); 
+        
+        _circleCollider.enabled = true;
         base.OnEnable();
     }
 
@@ -57,9 +59,13 @@ public class MazeAgent : Agent
         _parameters.BehaviorType = _parameters.BehaviorType == BehaviorType.Default 
             ? BehaviorType.HeuristicOnly : BehaviorType.Default;
     }
+
     protected override void OnDisable()
     {
+        _action.performed -= _ => ChangeBehaviourType();
         _action.Disable();
+
+        _circleCollider.enabled = false;
         base.OnDisable();
     }
 
@@ -133,8 +139,7 @@ public class MazeAgent : Agent
 
         if (Vector2.Distance(transform.position, new Vector3(0.5f, 0.5f, 0f)) < 1f)
         {
-            AddReward(-5f);
-            Debug.Log("NOOOOOOOO!");
+            AddReward(-0.5f);
         }
     }
 

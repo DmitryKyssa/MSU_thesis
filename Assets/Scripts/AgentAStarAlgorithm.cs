@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using Zenject;
 
@@ -105,6 +106,7 @@ public class AgentAStarAlgorithm : MonoBehaviour
         return !Physics2D.Raycast(position, direction, _raycastDistance);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private float Heuristic(Vector3 a, Vector3 b)
     {
         return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);

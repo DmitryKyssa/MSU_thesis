@@ -14,7 +14,7 @@ public class AgentBackHomeAlgorithm : MonoBehaviour
 
     private Transform _startPosition;
     private Rigidbody2D _rigidbody2D;
-    private Dictionary<Vector3, bool> _movingVariants = new Dictionary<Vector3, bool>();
+    private readonly Dictionary<Vector3, bool> _movingVariants = new Dictionary<Vector3, bool>();
     private readonly Stack<Vector3> _path = new Stack<Vector3>();
     private readonly HashSet<Vector3> _visitedPositions = new HashSet<Vector3>(); 
     private Vector3 _lastDirection = Vector3.zero;
@@ -64,7 +64,7 @@ public class AgentBackHomeAlgorithm : MonoBehaviour
         _path.Push(transform.position);
         _visitedPositions.Add(transform.position);
 
-        foreach (var dir in _directions)
+        foreach (Vector3 dir in _directions)
         {
             if (!Physics2D.Raycast(transform.position, dir, _raycastDistance))
             {
