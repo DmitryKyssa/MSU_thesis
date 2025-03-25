@@ -83,3 +83,4 @@ Once training is complete, a model file (`.onnx`) will be saved in the `results`
 
 1. Drag and drop the trained model into your Unity project.
 2. Assign it to the **Behavior Parameters** component of the agent.
+3. Set **Behaviour Type** to **Inference Only**.
