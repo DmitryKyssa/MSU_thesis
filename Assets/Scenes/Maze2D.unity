@@ -640,7 +640,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 4
   m_BackGroundColor: {r: 0.916, g: 0.916, b: 0.839056, a: 1}
@@ -1546,6 +1546,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _raycastDistance: 0.5
+  _waitTimeValue: 1
 --- !u!114 &1601712549
 MonoBehaviour:
   m_ObjectHideFlags: 0
