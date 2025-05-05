@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
-public class HintRenderer : MonoBehaviour
+public class HintRenderer : Singleton<HintRenderer>
 {
-    [Inject] private readonly MazeSpawner _mazeSpawner;
     public bool PathIsDrawn { get; set; } = false;
     [SerializeField] private LineRenderer _componentLineRenderer;
     [SerializeField] private EdgeCollider2D _componentEdgeCollider;
@@ -19,14 +17,15 @@ public class HintRenderer : MonoBehaviour
 
     public void DrawPath() 
     {
-        Maze maze = _mazeSpawner.maze; 
+        Maze maze = MazeSpawner.Instance.maze; 
         int x = maze.finishPosition.x; 
         int y = maze.finishPosition.y; 
         List<Vector3> positions = new List<Vector3>();
+        Vector3 cellSize = MazeSpawner.Instance.CellSize;
 
         while ((x != 0 || y != 0) && positions.Count < 1000)
         {
-            positions.Add(new Vector3(x * _mazeSpawner.CellSize.x, y * _mazeSpawner.CellSize.y, y * _mazeSpawner.CellSize.z));
+            positions.Add(new Vector3(x * cellSize.x, y * cellSize.y, y * cellSize.z));
 
             MazeGeneratorCell currentCell = maze.cells[x, y];
 

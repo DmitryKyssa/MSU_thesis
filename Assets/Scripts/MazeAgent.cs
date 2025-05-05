@@ -7,15 +7,14 @@ using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Zenject;
 
 public class MazeAgent : Agent
 {
-    [Inject] private readonly MazeSpawner _spawner;
-    [Inject] private readonly HintRenderer _hintRenderer;
     private Rigidbody2D _rigidbody;
     private CircleCollider2D _circleCollider;
-    private readonly Vector2 offset = new Vector2(0.5f, 0.5f);
+    private readonly Vector2 _offset = new Vector2(0.5f, 0.5f);
+    private readonly Vector3 _startPosition = new Vector3(0.5f, 0.5f, 0f);
+    private Vector3 _targetPosition = Vector3.zero;
     private List<Vector2> _colliderPoints = new List<Vector2>();
     private int _lastCheckpointIndex = 0;
     private readonly List<Vector2> _visitedPositions = new List<Vector2>();
@@ -28,6 +27,8 @@ public class MazeAgent : Agent
     private int _successfulEpisodes = 0;
     private InputAction _action;
     private BehaviorParameters _parameters;
+    private MazeSpawner _spawner;
+    private HintRenderer _hintRenderer;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetCircleColliderEnableStatus(bool status)
@@ -42,6 +43,9 @@ public class MazeAgent : Agent
         _circleCollider = GetComponent<CircleCollider2D>();
         _parameters = GetComponent<BehaviorParameters>();
         _circleCollider.enabled = true;
+
+        _spawner = MazeSpawner.Instance;
+        _hintRenderer = HintRenderer.Instance;
     }
 
     protected override void OnEnable()
@@ -73,8 +77,6 @@ public class MazeAgent : Agent
     {
         sensor.AddObservation(transform.position.x);
         sensor.AddObservation(transform.position.y);
-        sensor.AddObservation(_spawner.maze.finishPosition.x);
-        sensor.AddObservation(_spawner.maze.finishPosition.y);
     }
 
     public override void OnActionReceived(ActionBuffers actions)
@@ -128,7 +130,7 @@ public class MazeAgent : Agent
             AddReward(1f);
         }
 
-        float distanceToExit = Vector2.Distance(transform.position, _spawner.maze.finishPosition + offset);
+        float distanceToExit = Vector2.Distance(transform.position, _targetPosition);
         if (distanceToExit < 0.5f)
         {
             SetReward(1.0f);
@@ -137,9 +139,9 @@ public class MazeAgent : Agent
             EndEpisode();
         }
 
-        if (Vector2.Distance(transform.position, new Vector3(0.5f, 0.5f, 0f)) < 1f)
+        if (Vector2.Distance(transform.position, _startPosition) < 1f)
         {
-            AddReward(-0.5f);
+            AddReward(-0.1f);
         }
     }
 
@@ -200,15 +202,22 @@ public class MazeAgent : Agent
         _visitedPositions.Clear();
         _positionVisitCount.Clear();
 
-        _hintRenderer.PathIsDrawn = false;
-        _hintRenderer.ResetLineRendererPositions();
-        foreach (Transform child in _spawner.transform)
+        if (!_spawner.IsMazeGeneratedAtStart)
         {
-            Destroy(child.gameObject);
+            _hintRenderer.PathIsDrawn = false;
+            _hintRenderer.ResetLineRendererPositions();
+            foreach (Transform child in _spawner.transform)
+            {
+                Destroy(child.gameObject);
+            }
+            _spawner.GenerateMaze();
         }
-        _spawner.GenerateMaze();
+
+        _targetPosition = new Vector3(_spawner.maze.finishPosition.x + _offset.x, _spawner.maze.finishPosition.y + _offset.y, 0f);
+
+        _spawner.IsMazeGeneratedAtStart = false;
         _hintRenderer.DrawPath();
-        transform.position = new Vector3(0.5f, 0.5f, 0f);
+        transform.position = _startPosition;
 
         _colliderPoints.Clear();
         if (_hintRenderer.ComponentEdgeCollider != null)

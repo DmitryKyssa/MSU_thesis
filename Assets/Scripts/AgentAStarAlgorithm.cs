@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using Zenject;
 
-public class AgentAStarAlgorithm : MonoBehaviour
+public class AgentAStarAlgorithm : Singleton<AgentAStarAlgorithm>
 {
     [SerializeField] private float _raycastDistance = 0.6f;
-    [Inject] private readonly MazeSpawner _spawner;
 
     private readonly Vector3[] _directions = {
         Vector3.up, Vector3.down, Vector3.left, Vector3.right
@@ -16,7 +14,7 @@ public class AgentAStarAlgorithm : MonoBehaviour
 
     private Rigidbody2D _rigidbody2D;
     private List<Vector3> _path = new List<Vector3>();
-    private HashSet<Vector3> _visitedPositions = new HashSet<Vector3>();
+    private readonly HashSet<Vector3> _visitedPositions = new HashSet<Vector3>();
 
     private Vector3 _targetPosition;
 
@@ -27,7 +25,7 @@ public class AgentAStarAlgorithm : MonoBehaviour
 
     public void ActivateAgent()
     {
-        _targetPosition = new Vector3(_spawner.maze.finishPosition.x + 0.5f, _spawner.maze.finishPosition.y + 0.5f);
+        _targetPosition = new Vector3(MazeSpawner.Instance.maze.finishPosition.x + 0.5f, MazeSpawner.Instance.maze.finishPosition.y + 0.5f);
         StartCoroutine(FindPath());
     }
 
@@ -77,7 +75,7 @@ public class AgentAStarAlgorithm : MonoBehaviour
             yield return null;
         }
 
-        Debug.LogError("Path not found!"); //No way!
+        Debug.LogError("Path not found!");
     }
 
     private IEnumerator FollowPath()

@@ -1,13 +1,21 @@
 ﻿using UnityEngine;
-using Zenject;
 
-public class UI : MonoBehaviour
+public class UI : Singleton<UI>
 {
-    [Inject] private readonly HintRenderer _hintRenderer;
-    [Inject] private readonly MazeSpawner _mazeSpawner;
-    [Inject] private readonly AgentBackHomeAlgorithm _mazeAgentBackHome;
-    [Inject] private readonly AgentAStarAlgorithm _mazeAgentAStar;
-    [Inject] private readonly MazeAgent _mazeAgent;
+    private HintRenderer _hintRenderer;
+    private MazeSpawner _mazeSpawner;
+    private AgentBackHomeAlgorithm _mazeAgentBackHome;
+    private AgentAStarAlgorithm _mazeAgentAStar;
+    private MazeAgent _mazeAgent;
+
+    private void Awake()
+    {
+        _mazeAgentBackHome = AgentBackHomeAlgorithm.Instance;
+        _mazeAgentAStar = AgentAStarAlgorithm.Instance;
+        _mazeAgent = FindFirstObjectByType<MazeAgent>();
+        _hintRenderer = HintRenderer.Instance;
+        _mazeSpawner = MazeSpawner.Instance;
+    }
 
     public void ActivateAgentBackHome()
     {
@@ -34,7 +42,7 @@ public class UI : MonoBehaviour
         _mazeAgentBackHome.ResetPosition();
         _hintRenderer.PathIsDrawn = false;
         _hintRenderer.ResetLineRendererPositions();
-        foreach (Transform child in _mazeSpawner.transform) 
+        foreach (Transform child in _mazeSpawner.transform)
         {
             Destroy(child.gameObject);
         }

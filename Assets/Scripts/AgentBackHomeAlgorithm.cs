@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Zenject;
 
-public class AgentBackHomeAlgorithm : MonoBehaviour
+public class AgentBackHomeAlgorithm : Singleton<AgentBackHomeAlgorithm>
 {
-    [Inject] private readonly MazeSpawner _mazeSpawner;
     [SerializeField] private float _raycastDistance = 0.6f;
     private readonly Vector3[] _directions = {
         Vector3.up, Vector3.down, Vector3.left, Vector3.right
@@ -45,8 +43,8 @@ public class AgentBackHomeAlgorithm : MonoBehaviour
 
     private IEnumerator StartAdventure()
     {
-        var waitTime = new WaitForSeconds(.01f);
-        var castedVector = new Vector3(_mazeSpawner.maze.finishPosition.x + 0.5f, _mazeSpawner.maze.finishPosition.y + 0.5f, 0f);
+        WaitForSeconds waitTime = new(.01f);
+        Vector3 castedVector = new(MazeSpawner.Instance.maze.finishPosition.x + 0.5f, MazeSpawner.Instance.maze.finishPosition.y + 0.5f, 0f);
         while (transform.position != castedVector)
         {
             CheckDirections();
