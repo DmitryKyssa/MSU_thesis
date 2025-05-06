@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class AgentBackHomeAlgorithm : Singleton<AgentBackHomeAlgorithm>
+public class MazeAgentRecursivePathfinding : Singleton<MazeAgentRecursivePathfinding>
 {
     [SerializeField] private float _raycastDistance = 0.6f;
     private readonly Vector3[] _directions = {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-public class AgentAStarAlgorithm : Singleton<AgentAStarAlgorithm>
+public class MazeAgentAStar : Singleton<MazeAgentAStar>
 {
     [SerializeField] private float _raycastDistance = 0.6f;
 

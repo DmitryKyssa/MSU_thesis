@@ -8,7 +8,7 @@ using Unity.MLAgents.Sensors;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class MazeAgent : Agent
+public class MazeAgentML : Agent
 {
     private Rigidbody2D _rigidbody;
     private CircleCollider2D _circleCollider;

@@ -4,15 +4,15 @@ public class UI : Singleton<UI>
 {
     private HintRenderer _hintRenderer;
     private MazeSpawner _mazeSpawner;
-    private AgentBackHomeAlgorithm _mazeAgentBackHome;
-    private AgentAStarAlgorithm _mazeAgentAStar;
-    private MazeAgent _mazeAgent;
+    private MazeAgentRecursivePathfinding _mazeAgentBackHome;
+    private MazeAgentAStar _mazeAgentAStar;
+    private MazeAgentML _mazeAgent;
 
     private void Awake()
     {
-        _mazeAgentBackHome = AgentBackHomeAlgorithm.Instance;
-        _mazeAgentAStar = AgentAStarAlgorithm.Instance;
-        _mazeAgent = FindFirstObjectByType<MazeAgent>();
+        _mazeAgentBackHome = MazeAgentRecursivePathfinding.Instance;
+        _mazeAgentAStar = MazeAgentAStar.Instance;
+        _mazeAgent = FindFirstObjectByType<MazeAgentML>();
         _hintRenderer = HintRenderer.Instance;
         _mazeSpawner = MazeSpawner.Instance;
     }
