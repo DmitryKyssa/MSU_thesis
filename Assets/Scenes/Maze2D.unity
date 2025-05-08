@@ -1546,7 +1546,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _raycastDistance: 0.5
-  _waitTimeValue: 1
 --- !u!114 &1601712549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1569,16 +1568,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1601712542}
   m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d6cde73649f34a4191790b2186ca21d, type: 3}
+  m_Script: {fileID: 11500000, guid: 5c3a06e79e856994dadf451f6d5559ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 20000
-  _maxHistorySize: 10
+  MaxStep: 100000
+  _maxHistorySize: 100
   _maxVisitPenalty: 3
-  _speed: 5
+  _speed: 1
 --- !u!114 &1601712551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1592,8 +1591,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 2
-    NumStackedVectorObservations: 50
+    VectorObservationSize: 9
+    NumStackedVectorObservations: 4
     m_ActionSpec:
       m_NumContinuousActions: 2
       BranchSizes: 
@@ -1606,7 +1605,7 @@ MonoBehaviour:
   m_BehaviorType: 0
   m_BehaviorName: MazeAgent
   TeamId: 0
-  m_UseChildSensors: 1
+  m_UseChildSensors: 0
   m_UseChildActuators: 1
   m_DeterministicInference: 0
   m_ObservableAttributeHandling: 0

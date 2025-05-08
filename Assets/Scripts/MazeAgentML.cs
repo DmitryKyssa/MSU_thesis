@@ -15,16 +15,20 @@ public class MazeAgentML : Agent
     private readonly Vector2 _offset = new Vector2(0.5f, 0.5f);
     private readonly Vector3 _startPosition = new Vector3(0.5f, 0.5f, 0f);
     private Vector3 _targetPosition = Vector3.zero;
+    private Vector3 _previousPosition;
+    private float _previousDistanceToTarget;
     private List<Vector2> _colliderPoints = new List<Vector2>();
     private int _lastCheckpointIndex = 0;
     private readonly List<Vector2> _visitedPositions = new List<Vector2>();
     private readonly List<int> _visitedHintEdges = new List<int>();
     private readonly Dictionary<Vector2, int> _positionVisitCount = new Dictionary<Vector2, int>();
     [SerializeField] private int _maxHistorySize = 100;
-    [SerializeField] private int _maxVisitPenalty = 5;
+    [SerializeField] private int _maxVisitPenalty = 3;
     [SerializeField] private int _speed = 1;
     private int _episodes = 0;
     private int _successfulEpisodes = 0;
+    private float _episodeTimer = 0f;
+    private float _maxEpisodeTime = 300f;
     private InputAction _action;
     private BehaviorParameters _parameters;
     private MazeSpawner _spawner;
@@ -52,15 +56,15 @@ public class MazeAgentML : Agent
     {
         _action = new InputAction(nameof(ChangeBehaviourType), InputActionType.Button, "<Keyboard>/space");
         _action.performed += _ => ChangeBehaviourType();
-        _action.Enable(); 
-        
+        _action.Enable();
+
         _circleCollider.enabled = true;
         base.OnEnable();
     }
 
     private void ChangeBehaviourType()
     {
-        _parameters.BehaviorType = _parameters.BehaviorType == BehaviorType.Default 
+        _parameters.BehaviorType = _parameters.BehaviorType == BehaviorType.Default
             ? BehaviorType.HeuristicOnly : BehaviorType.Default;
     }
 
@@ -77,71 +81,95 @@ public class MazeAgentML : Agent
     {
         sensor.AddObservation(transform.position.x);
         sensor.AddObservation(transform.position.y);
+
+        sensor.AddObservation(_targetPosition.x);
+        sensor.AddObservation(_targetPosition.y);
+
+        sensor.AddObservation(Vector2.Distance(transform.position, _targetPosition));
+
+        Vector2 directionToTarget = (_targetPosition - transform.position).normalized;
+        sensor.AddObservation(directionToTarget.x);
+        sensor.AddObservation(directionToTarget.y);
+
+        int currentIndex = GetDistanceFromPath();
+        float normalizedCheckpointProgress = (float)currentIndex / _colliderPoints.Count;
+        sensor.AddObservation(normalizedCheckpointProgress);
+
+        float distanceToStart = Vector2.Distance(transform.position, _startPosition);
+        sensor.AddObservation(distanceToStart);
     }
 
     public override void OnActionReceived(ActionBuffers actions)
     {
+        _episodeTimer += Time.deltaTime;
+
         float moveX = actions.ContinuousActions[0];
         float moveY = actions.ContinuousActions[1];
 
-        _rigidbody.MovePosition(_rigidbody.position + _speed * Time.fixedDeltaTime * new Vector2(moveX, moveY));
+        Vector2 movement = new Vector2(moveX, moveY).normalized;
+        _rigidbody.MovePosition(_rigidbody.position + _speed * Time.fixedDeltaTime * movement);
+
+        Vector2 roundedPosition = new Vector2(
+            Mathf.Round(transform.position.x),
+            Mathf.Round(transform.position.y)
+        );
 
         if (_visitedPositions.Count >= _maxHistorySize)
         {
             _visitedPositions.RemoveAt(0);
         }
-        _visitedPositions.Add(transform.position);
+        _visitedPositions.Add(roundedPosition);
 
-        if (_visitedPositions.Count(pos => pos == (Vector2)transform.position) > 1)
+        if (_positionVisitCount.ContainsKey(roundedPosition))
         {
-            AddReward(-0.1f);
-        }
+            _positionVisitCount[roundedPosition]++;
 
-        Vector2 currentPosition = new Vector2(transform.position.x, transform.position.y);
-        if (_positionVisitCount.ContainsKey(currentPosition))
-        {
-            _positionVisitCount[currentPosition]++;
+            if (_positionVisitCount[roundedPosition] > _maxVisitPenalty)
+            {
+                AddReward(-0.01f);
+            }
         }
         else
         {
-            _positionVisitCount[currentPosition] = 1;
+            _positionVisitCount[roundedPosition] = 1;
+            AddReward(0.005f);
         }
 
-        if (_positionVisitCount[currentPosition] > _maxVisitPenalty)
-        {
-            AddReward(-0.001f);
-        }
+        float currentDistanceToTarget = Vector2.Distance(transform.position, _targetPosition);
+        float distanceReward = _previousDistanceToTarget - currentDistanceToTarget;
+        AddReward(distanceReward * 0.2f);
+        _previousDistanceToTarget = currentDistanceToTarget;
 
         int currentIndex = GetDistanceFromPath();
         if (currentIndex < _lastCheckpointIndex)
         {
-            AddReward(0.5f);
-            _lastCheckpointIndex -= 10;
-            Debug.Log("Checkpoint reached!");
+            AddReward((_colliderPoints.Count - currentIndex) * 0.01f);
+            _lastCheckpointIndex -= 5;
+            Debug.Log($"Forward progress! Index: {currentIndex}/{_colliderPoints.Count}");
         }
 
-        if (_visitedHintEdges.Contains(currentIndex))
+        if (currentIndex < _lastCheckpointIndex - 5)
         {
-            AddReward(-0.1f);
+            AddReward(-0.05f);
         }
-        else
+
+        if (!_visitedHintEdges.Contains(currentIndex))
         {
             _visitedHintEdges.Add(currentIndex);
-            AddReward(1f);
-        }
-
-        float distanceToExit = Vector2.Distance(transform.position, _targetPosition);
-        if (distanceToExit < 0.5f)
-        {
-            SetReward(1.0f);
-            _successfulEpisodes++;
-            Debug.Log($"Reached the exit! {_successfulEpisodes}/{_episodes}");
-            EndEpisode();
+            AddReward(0.1f);
         }
 
         if (Vector2.Distance(transform.position, _startPosition) < 1f)
         {
-            AddReward(-0.1f);
+            AddReward(-0.05f);
+        }
+
+        if (currentDistanceToTarget < 0.5f)
+        {
+            SetReward(10.0f);
+            _successfulEpisodes++;
+            Debug.Log($"Reached the exit! {_successfulEpisodes}/{_episodes} - Time: {_episodeTimer}s");
+            EndEpisode();
         }
     }
 
@@ -175,20 +203,20 @@ public class MazeAgentML : Agent
 
         if (Input.GetKey(KeyCode.W))
         {
-            moveY = 0.5f;
+            moveY = 1f;
         }
         else if (Input.GetKey(KeyCode.S))
         {
-            moveY = -0.5f;
+            moveY = -1f;
         }
 
         if (Input.GetKey(KeyCode.A))
         {
-            moveX = -0.5f;
+            moveX = -1f;
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            moveX = 0.5f;
+            moveX = 1f;
         }
 
         continuousActions[0] = moveX;
@@ -198,9 +226,11 @@ public class MazeAgentML : Agent
     public override void OnEpisodeBegin()
     {
         _episodes++;
+        _episodeTimer = 0f;
 
         _visitedPositions.Clear();
         _positionVisitCount.Clear();
+        _visitedHintEdges.Clear();
 
         if (!_spawner.IsMazeGeneratedAtStart)
         {
@@ -218,12 +248,15 @@ public class MazeAgentML : Agent
         _spawner.IsMazeGeneratedAtStart = false;
         _hintRenderer.DrawPath();
         transform.position = _startPosition;
+        _previousPosition = _startPosition;
+        _previousDistanceToTarget = Vector2.Distance(_startPosition, _targetPosition);
 
         _colliderPoints.Clear();
         if (_hintRenderer.ComponentEdgeCollider != null)
         {
             _colliderPoints = _hintRenderer.ComponentEdgeCollider.points.ToList();
         }
+
         _lastCheckpointIndex = _colliderPoints.Count - 10;
     }
 }
