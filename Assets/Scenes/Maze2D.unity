@@ -343,7 +343,7 @@ GameObject:
   - component: {fileID: 436242422}
   - component: {fileID: 436242421}
   - component: {fileID: 436242424}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Hint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1393,7 +1393,7 @@ GameObject:
   - component: {fileID: 1601712550}
   - component: {fileID: 1601712552}
   - component: {fileID: 1601712553}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1492,7 +1492,7 @@ Rigidbody2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 5
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 1
@@ -1574,10 +1574,11 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 100000
-  _maxHistorySize: 100
-  _maxVisitPenalty: 3
-  _speed: 1
+  MaxStep: 50000
+  _maxHistorySize: 50
+  _maxVisitPenalty: 5
+  _speed: 2
+  _raycastDistance: 0.5
 --- !u!114 &1601712551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1591,7 +1592,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 7
+    VectorObservationSize: 12
     NumStackedVectorObservations: 4
     m_ActionSpec:
       m_NumContinuousActions: 2
@@ -2074,7 +2075,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2094133618}
   - component: {fileID: 2094133617}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Maze Spawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -14,8 +14,10 @@ public class MazeAgentML : Agent
     private CircleCollider2D _circleCollider;
     private readonly Vector2 _offset = new Vector2(0.5f, 0.5f);
     private readonly Vector3 _startPosition = new Vector3(0.5f, 0.5f, 0f);
-    private Vector3 _targetPosition = Vector3.zero;   
-    private List<Vector2> _hintRendererPoints = new List<Vector2>();
+    private Vector3 _targetPosition = Vector3.zero;
+    private Vector3 _previousPosition;
+    private float _previousDistanceToTarget;
+    private List<Vector2> _hintRendererPath = new List<Vector2>();
     private int _lastCheckpointIndex = 0;
     private readonly List<Vector2> _visitedPositions = new List<Vector2>();
     private readonly List<int> _visitedHintEdges = new List<int>();
@@ -29,6 +31,13 @@ public class MazeAgentML : Agent
     private BehaviorParameters _parameters;
     private MazeSpawner _spawner;
     private HintRenderer _hintRenderer;
+    [SerializeField] private float _raycastDistance = 0.6f;
+    private readonly Vector2[] _raycastDirections = {
+        Vector2.up, Vector2.down, Vector2.left, Vector2.right
+    };
+    private bool[] _wallDetected;
+    private readonly float _raycastDuration = 3f;
+    private readonly int _checkpointStep = 5;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetCircleColliderEnableStatus(bool status)
@@ -46,6 +55,8 @@ public class MazeAgentML : Agent
 
         _spawner = MazeSpawner.Instance;
         _hintRenderer = HintRenderer.Instance;
+
+        _wallDetected = new bool[_raycastDirections.Length];
     }
 
     protected override void OnEnable()
@@ -73,17 +84,38 @@ public class MazeAgentML : Agent
         base.OnDisable();
     }
 
+    private void DetectWalls()
+    {
+        for (int i = 0; i < _raycastDirections.Length; i++)
+        {
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, _raycastDirections[i], _raycastDistance);
+            _wallDetected[i] = hit.collider != null;
+
+            Color rayColor = _wallDetected[i] ? Color.red : Color.green;
+            Debug.DrawRay(transform.position, _raycastDirections[i] * _raycastDistance, rayColor, _raycastDuration);
+        }
+    }
+
     public override void CollectObservations(VectorSensor sensor)
     {
+        DetectWalls();
+
         sensor.AddObservation(transform.position.x);
         sensor.AddObservation(transform.position.y);
 
         sensor.AddObservation(_targetPosition.x);
         sensor.AddObservation(_targetPosition.y);
 
+        sensor.AddObservation(Vector2.Distance(transform.position, _targetPosition));
+
         Vector2 directionToTarget = (_targetPosition - transform.position).normalized;
         sensor.AddObservation(directionToTarget.x);
         sensor.AddObservation(directionToTarget.y);
+
+        foreach (bool wallPresent in _wallDetected)
+        {
+            sensor.AddObservation(wallPresent ? 1.0f : 0.0f);
+        }
 
         sensor.AddObservation(GetDistanceFromPath());
     }
@@ -95,6 +127,16 @@ public class MazeAgentML : Agent
 
         Vector2 movement = new Vector2(moveX, moveY).normalized;
         _rigidbody.MovePosition(_rigidbody.position + _speed * Time.fixedDeltaTime * movement);
+
+        Vector2 moveDirection = movement.normalized;
+        for (int i = 0; i < _raycastDirections.Length; i++)
+        {
+            if (_wallDetected[i] && Vector2.Dot(moveDirection, _raycastDirections[i]) > 0.8f)
+            {
+                AddReward(-0.01f);
+                break;
+            }
+        }
 
         Vector2 roundedPosition = new Vector2(
             Mathf.Round(transform.position.x),
@@ -122,25 +164,29 @@ public class MazeAgentML : Agent
             AddReward(0.005f);
         }
 
+        float currentDistanceToTarget = Vector2.Distance(transform.position, _targetPosition);
+        float distanceReward = _previousDistanceToTarget - currentDistanceToTarget;
+        AddReward(distanceReward * 0.05f);
+        _previousDistanceToTarget = currentDistanceToTarget;
+
         int currentIndex = GetDistanceFromPath();
         if (currentIndex < _lastCheckpointIndex)
         {
-            AddReward((_hintRendererPoints.Count - currentIndex) * 0.01f);
-            _lastCheckpointIndex -= 10;
+            AddReward((_hintRendererPath.Count - currentIndex) * 0.05f);
+            _lastCheckpointIndex -= _checkpointStep;
         }
 
         if (!_visitedHintEdges.Contains(currentIndex))
         {
             _visitedHintEdges.Add(currentIndex);
-            AddReward(0.1f);
+            AddReward(0.2f);
         }
 
-        if (Vector2.Distance(transform.position, _startPosition) < 1f)
+        if (Vector2.Distance(transform.position, _startPosition) < 0.5f)
         {
-            AddReward(-0.05f);
+            AddReward(-0.01f);
         }
 
-        float currentDistanceToTarget = Vector2.Distance(transform.position, _targetPosition);
         if (currentDistanceToTarget < 0.5f)
         {
             SetReward(10.0f);
@@ -153,18 +199,15 @@ public class MazeAgentML : Agent
     private int GetDistanceFromPath()
     {
         Vector2 agentPosition = new Vector2(transform.position.x, transform.position.y);
-
-        float minDistance = _hintRendererPoints.Count;
         int closestPointIndex = -1;
-
-        int minIndex = Mathf.Clamp(_lastCheckpointIndex - 10, 0, _lastCheckpointIndex);
-        for (int i = minIndex; i < _hintRendererPoints.Count; i++)
+        int minIndex = Mathf.Clamp(_lastCheckpointIndex - _checkpointStep, 0, _hintRendererPath.Count);
+        for (int i = minIndex; i < _hintRendererPath.Count; i++)
         {
-            float distance = Vector2.Distance(agentPosition, _hintRendererPoints[i]);
-            if (distance < minDistance)
+            float distance = Vector2.Distance(agentPosition, _hintRendererPath[i]);
+            if (distance < 1f)
             {
-                minDistance = distance;
                 closestPointIndex = i;
+                break;
             }
         }
 
@@ -224,10 +267,15 @@ public class MazeAgentML : Agent
         _spawner.IsMazeGeneratedAtStart = false;
         _hintRenderer.DrawPath();
         transform.position = _startPosition;
+        _previousPosition = _startPosition;
+        _previousDistanceToTarget = Vector2.Distance(_startPosition, _targetPosition);
 
-        _hintRendererPoints.Clear();
-        _hintRendererPoints = _hintRenderer.ComponentEdgeCollider.points.ToList();
+        _hintRendererPath.Clear();
+        if (_hintRenderer.ComponentEdgeCollider != null)
+        {
+            _hintRendererPath = _hintRenderer.ComponentEdgeCollider.points.ToList();
+        }
 
-        _lastCheckpointIndex = _hintRendererPoints.Count - 10;
+        _lastCheckpointIndex = _hintRendererPath.Count - _checkpointStep;
     }
 }
