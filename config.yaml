@@ -19,12 +19,12 @@ behaviors:
     reward_signals:
       extrinsic:
         gamma: 0.95
-        strength: 0.8
+        strength: 0.6
       curiosity:
         gamma: 0.99
-        strength: 0.2
+        strength: 0.4
         encoding_size: 256
         learning_rate: 0.0003
-    max_steps: 10000000
+    max_steps: 1000000
     time_horizon: 64
-    summary_freq: 10000
+    summary_freq: 50000

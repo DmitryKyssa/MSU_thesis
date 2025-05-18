@@ -9,6 +9,8 @@ public class MazeSpawner : Singleton<MazeSpawner>
     [SerializeField] private int _height = 10;
 
     public bool IsMazeGeneratedAtStart { get; set; }
+    public int Width => _width;
+    public int Height => _height;
 
     private void Start()
     {

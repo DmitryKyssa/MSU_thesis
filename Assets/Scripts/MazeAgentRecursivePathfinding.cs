@@ -6,20 +6,20 @@ using UnityEngine;
 public class MazeAgentRecursivePathfinding : Singleton<MazeAgentRecursivePathfinding>
 {
     [SerializeField] private float _raycastDistance = 0.6f;
-    private readonly Vector3[] _directions = {
-        Vector3.up, Vector3.down, Vector3.left, Vector3.right
+    private readonly Vector2[] _directions = {
+        Vector2.up, Vector2.down, Vector2.left, Vector2.right
     };
 
-    private Transform _startPosition;
+    private Vector2 _startPosition;
     private Rigidbody2D _rigidbody2D;
-    private readonly Dictionary<Vector3, bool> _movingVariants = new Dictionary<Vector3, bool>();
-    private readonly Stack<Vector3> _path = new Stack<Vector3>();
-    private readonly HashSet<Vector3> _visitedPositions = new HashSet<Vector3>(); 
-    private Vector3 _lastDirection = Vector3.zero;
+    private readonly Dictionary<Vector2, bool> _movingVariants = new Dictionary<Vector2, bool>();
+    private readonly Stack<Vector2> _path = new Stack<Vector2>();
+    private readonly HashSet<Vector2> _visitedPositions = new HashSet<Vector2>(); 
+    private Vector2 _lastDirection = Vector2.zero;
 
     private void Start()
     {
-        _startPosition = transform;
+        _startPosition = transform.position;
         _rigidbody2D = GetComponent<Rigidbody2D>();
 
         foreach (var dir in _directions)
@@ -75,10 +75,10 @@ public class MazeAgentRecursivePathfinding : Singleton<MazeAgentRecursivePathfin
             }
         }
 
-        List<Vector3> possibleMoves = _movingVariants
+        List<Vector2> possibleMoves = _movingVariants
             .Where(kvp => kvp.Value)
             .Select(kvp => kvp.Key)
-            .Where(dir => !_visitedPositions.Contains(transform.position + dir) && dir != -_lastDirection)
+            .Where(dir => !_visitedPositions.Contains((Vector2)transform.position + dir) && dir != -_lastDirection)
             .ToList();
 
         if (possibleMoves.Count > 0)
@@ -89,9 +89,9 @@ public class MazeAgentRecursivePathfinding : Singleton<MazeAgentRecursivePathfin
         else if (_path.Count > 1)
         {
             _path.Pop();
-            Vector3 lastPosition = _path.Peek();
+            Vector2 lastPosition = _path.Peek();
 
-            if (lastPosition == _startPosition.position)
+            if (lastPosition == _startPosition)
             {
                 _path.Clear();
                 _visitedPositions.Clear();
@@ -99,13 +99,13 @@ public class MazeAgentRecursivePathfinding : Singleton<MazeAgentRecursivePathfin
                 return;
             }
 
-            MoveInDirection(lastPosition - transform.position);
-            _lastDirection = lastPosition - transform.position;
+            MoveInDirection((Vector3)lastPosition - transform.position);
+            _lastDirection = (Vector3)lastPosition - transform.position;
         }
     }
 
-    private void MoveInDirection(Vector3 direction)
+    private void MoveInDirection(Vector2 direction)
     {
-        _rigidbody2D.MovePosition(_rigidbody2D.position + (Vector2)direction);
+        _rigidbody2D.MovePosition(_rigidbody2D.position + direction);
     }
 }

@@ -14,10 +14,8 @@ public class MazeAgentML : Agent
     private CircleCollider2D _circleCollider;
     private readonly Vector2 _offset = new Vector2(0.5f, 0.5f);
     private readonly Vector3 _startPosition = new Vector3(0.5f, 0.5f, 0f);
-    private Vector3 _targetPosition = Vector3.zero;
-    private Vector3 _previousPosition;
-    private float _previousDistanceToTarget;
-    private List<Vector2> _colliderPoints = new List<Vector2>();
+    private Vector3 _targetPosition = Vector3.zero;   
+    private List<Vector2> _hintRendererPoints = new List<Vector2>();
     private int _lastCheckpointIndex = 0;
     private readonly List<Vector2> _visitedPositions = new List<Vector2>();
     private readonly List<int> _visitedHintEdges = new List<int>();
@@ -27,8 +25,6 @@ public class MazeAgentML : Agent
     [SerializeField] private int _speed = 1;
     private int _episodes = 0;
     private int _successfulEpisodes = 0;
-    private float _episodeTimer = 0f;
-    private float _maxEpisodeTime = 300f;
     private InputAction _action;
     private BehaviorParameters _parameters;
     private MazeSpawner _spawner;
@@ -85,24 +81,15 @@ public class MazeAgentML : Agent
         sensor.AddObservation(_targetPosition.x);
         sensor.AddObservation(_targetPosition.y);
 
-        sensor.AddObservation(Vector2.Distance(transform.position, _targetPosition));
-
         Vector2 directionToTarget = (_targetPosition - transform.position).normalized;
         sensor.AddObservation(directionToTarget.x);
         sensor.AddObservation(directionToTarget.y);
 
-        int currentIndex = GetDistanceFromPath();
-        float normalizedCheckpointProgress = (float)currentIndex / _colliderPoints.Count;
-        sensor.AddObservation(normalizedCheckpointProgress);
-
-        float distanceToStart = Vector2.Distance(transform.position, _startPosition);
-        sensor.AddObservation(distanceToStart);
+        sensor.AddObservation(GetDistanceFromPath());
     }
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        _episodeTimer += Time.deltaTime;
-
         float moveX = actions.ContinuousActions[0];
         float moveY = actions.ContinuousActions[1];
 
@@ -135,22 +122,11 @@ public class MazeAgentML : Agent
             AddReward(0.005f);
         }
 
-        float currentDistanceToTarget = Vector2.Distance(transform.position, _targetPosition);
-        float distanceReward = _previousDistanceToTarget - currentDistanceToTarget;
-        AddReward(distanceReward * 0.2f);
-        _previousDistanceToTarget = currentDistanceToTarget;
-
         int currentIndex = GetDistanceFromPath();
         if (currentIndex < _lastCheckpointIndex)
         {
-            AddReward((_colliderPoints.Count - currentIndex) * 0.01f);
-            _lastCheckpointIndex -= 5;
-            Debug.Log($"Forward progress! Index: {currentIndex}/{_colliderPoints.Count}");
-        }
-
-        if (currentIndex < _lastCheckpointIndex - 5)
-        {
-            AddReward(-0.05f);
+            AddReward((_hintRendererPoints.Count - currentIndex) * 0.01f);
+            _lastCheckpointIndex -= 10;
         }
 
         if (!_visitedHintEdges.Contains(currentIndex))
@@ -164,11 +140,12 @@ public class MazeAgentML : Agent
             AddReward(-0.05f);
         }
 
+        float currentDistanceToTarget = Vector2.Distance(transform.position, _targetPosition);
         if (currentDistanceToTarget < 0.5f)
         {
             SetReward(10.0f);
             _successfulEpisodes++;
-            Debug.Log($"Reached the exit! {_successfulEpisodes}/{_episodes} - Time: {_episodeTimer}s");
+            Debug.Log($"Reached the exit! {_successfulEpisodes}/{_episodes}");
             EndEpisode();
         }
     }
@@ -177,13 +154,13 @@ public class MazeAgentML : Agent
     {
         Vector2 agentPosition = new Vector2(transform.position.x, transform.position.y);
 
-        float minDistance = _colliderPoints.Count;
+        float minDistance = _hintRendererPoints.Count;
         int closestPointIndex = -1;
 
         int minIndex = Mathf.Clamp(_lastCheckpointIndex - 10, 0, _lastCheckpointIndex);
-        for (int i = minIndex; i < _colliderPoints.Count; i++)
+        for (int i = minIndex; i < _hintRendererPoints.Count; i++)
         {
-            float distance = Vector2.Distance(agentPosition, _colliderPoints[i]);
+            float distance = Vector2.Distance(agentPosition, _hintRendererPoints[i]);
             if (distance < minDistance)
             {
                 minDistance = distance;
@@ -226,7 +203,6 @@ public class MazeAgentML : Agent
     public override void OnEpisodeBegin()
     {
         _episodes++;
-        _episodeTimer = 0f;
 
         _visitedPositions.Clear();
         _positionVisitCount.Clear();
@@ -248,15 +224,10 @@ public class MazeAgentML : Agent
         _spawner.IsMazeGeneratedAtStart = false;
         _hintRenderer.DrawPath();
         transform.position = _startPosition;
-        _previousPosition = _startPosition;
-        _previousDistanceToTarget = Vector2.Distance(_startPosition, _targetPosition);
 
-        _colliderPoints.Clear();
-        if (_hintRenderer.ComponentEdgeCollider != null)
-        {
-            _colliderPoints = _hintRenderer.ComponentEdgeCollider.points.ToList();
-        }
+        _hintRendererPoints.Clear();
+        _hintRendererPoints = _hintRenderer.ComponentEdgeCollider.points.ToList();
 
-        _lastCheckpointIndex = _colliderPoints.Count - 10;
+        _lastCheckpointIndex = _hintRendererPoints.Count - 10;
     }
 }
