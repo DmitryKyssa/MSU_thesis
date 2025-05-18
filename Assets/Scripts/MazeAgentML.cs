@@ -15,8 +15,6 @@ public class MazeAgentML : Agent
     private readonly Vector2 _offset = new Vector2(0.5f, 0.5f);
     private readonly Vector3 _startPosition = new Vector3(0.5f, 0.5f, 0f);
     private Vector3 _targetPosition = Vector3.zero;
-    private Vector3 _previousPosition;
-    private float _previousDistanceToTarget;
     private List<Vector2> _hintRendererPath = new List<Vector2>();
     private int _lastCheckpointIndex = 0;
     private readonly List<Vector2> _visitedPositions = new List<Vector2>();
@@ -164,11 +162,6 @@ public class MazeAgentML : Agent
             AddReward(0.005f);
         }
 
-        float currentDistanceToTarget = Vector2.Distance(transform.position, _targetPosition);
-        float distanceReward = _previousDistanceToTarget - currentDistanceToTarget;
-        AddReward(distanceReward * 0.05f);
-        _previousDistanceToTarget = currentDistanceToTarget;
-
         int currentIndex = GetDistanceFromPath();
         if (currentIndex < _lastCheckpointIndex)
         {
@@ -187,6 +180,7 @@ public class MazeAgentML : Agent
             AddReward(-0.01f);
         }
 
+        float currentDistanceToTarget = Vector2.Distance(transform.position, _targetPosition);
         if (currentDistanceToTarget < 0.5f)
         {
             SetReward(10.0f);
@@ -267,8 +261,6 @@ public class MazeAgentML : Agent
         _spawner.IsMazeGeneratedAtStart = false;
         _hintRenderer.DrawPath();
         transform.position = _startPosition;
-        _previousPosition = _startPosition;
-        _previousDistanceToTarget = Vector2.Distance(_startPosition, _targetPosition);
 
         _hintRendererPath.Clear();
         if (_hintRenderer.ComponentEdgeCollider != null)
