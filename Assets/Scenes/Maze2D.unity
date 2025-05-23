@@ -1573,11 +1573,11 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 50000
-  _maxHistorySize: 50
+  MaxStep: 200000
+  _maxHistorySize: 100
   _maxVisitPenalty: 5
   _speed: 2
-  _raycastDistance: 0.5
+  _raycastDistance: 0.35
 --- !u!114 &1601712551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1600,7 +1600,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 0}
+  m_Model: {fileID: 5022602860645237092, guid: ea88ae075cd78934597505c829623e10, type: 3}
   m_InferenceDevice: 2
   m_BehaviorType: 0
   m_BehaviorName: MazeAgent
